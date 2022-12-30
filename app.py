@@ -2,7 +2,7 @@ import streamlit as st
 import os
 import tempfile
 from PIL import Image
-# from deepface import DeepFace
+from deepface import DeepFace
 from deepface.detectors import OpenCvWrapper
 from streamlit_webrtc import webrtc_streamer, VideoTransformerBase, ClientSettings
 import av
@@ -87,17 +87,17 @@ if test_photo:
     temp_file = tempfile.NamedTemporaryFile(delete=False)
     temp_file.write(test_photo.read())
 
-    # recognition = DeepFace.find(img_path=temp_file.name,
-    #                             db_path=PHOTO_DIR,
-    #                             enforce_detection=False,
-    #                             distance_metric=metric,
-    #                             detector_backend=backend,
-    #                             model_name=model
-    #                             )
-    # record = recognition.head(1)
-    # record_dict = record.to_dict()
-    # if 0 in record_dict['identity']:
-    #     placeholder.image(record_dict['identity'][0], width=200)
+    recognition = DeepFace.find(img_path=temp_file.name,
+                                db_path=PHOTO_DIR,
+                                enforce_detection=False,
+                                distance_metric=metric,
+                                detector_backend=backend,
+                                model_name=model
+                                )
+    record = recognition.head(1)
+    record_dict = record.to_dict()
+    if 0 in record_dict['identity']:
+        placeholder.image(record_dict['identity'][0], width=200)
 
 
 def video_frame_callback(frame):
@@ -121,6 +121,12 @@ def video_frame_callback(frame):
     return av.VideoFrame.from_ndarray(frame, format="bgr24")
 
 
-webrtc_streamer(key="camera", client_settings=ClientSettings(
-    media_stream_constraints={"video": True, "audio": False},
-), video_frame_callback=video_frame_callback)
+webrtc_streamer(
+    key="camera",
+    client_settings=ClientSettings(
+        media_stream_constraints={"video": True, "audio": False},
+    ),
+    video_frame_callback=video_frame_callback,
+    rtc_configuration={
+        "iceServers": [{"urls": ["stun:stun.l.google.com:19302"]}]
+    })
