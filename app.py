@@ -2,7 +2,8 @@ import streamlit as st
 import os
 import tempfile
 from PIL import Image
-from deepface import DeepFace
+
+# from deepface import DeepFace
 
 APP_DIR = os.path.abspath(os.curdir)
 PHOTO_DIR = os.path.join(APP_DIR, "photos")
@@ -75,6 +76,10 @@ placeholder.title("Facial recognition")
 
 test_photo = st.file_uploader("Upload photo", type=[".jpg", ".png", ".jpeg"])
 
+model = st.selectbox('Model', models)
+backend = st.selectbox('Model', backends)
+metric = st.selectbox('Model', metrics)
+
 if test_photo:
     placeholder.empty()
     temp_file = tempfile.NamedTemporaryFile(delete=False)
@@ -83,9 +88,9 @@ if test_photo:
     recognition = DeepFace.find(img_path=temp_file.name,
                                 db_path=PHOTO_DIR,
                                 enforce_detection=False,
-                                distance_metric=metrics[1],
-                                detector_backend=backends[0],
-                                model_name=models[2]
+                                distance_metric=metric,
+                                detector_backend=backend,
+                                model_name=model
                                 )
     record = recognition.head(1)
     record_dict = record.to_dict()
