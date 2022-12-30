@@ -8,9 +8,9 @@ APP_DIR = os.path.abspath(os.curdir)
 PHOTO_DIR = os.path.join(APP_DIR, "photos")
 
 models = [
-    "VGG-Face",
-    "Facenet",
     "Facenet512",
+    "Facenet",
+    "VGG-Face",
     "OpenFace",
     "DeepFace",
     "DeepID",
@@ -28,7 +28,7 @@ backends = [
     'mediapipe'
 ]
 
-metrics = ["cosine", "euclidean", "euclidean_l2"]
+metrics = ["euclidean", "cosine", "euclidean_l2"]
 
 st.set_page_config(
     page_title="Prevantec - Facial Recognition", initial_sidebar_state="expanded"
