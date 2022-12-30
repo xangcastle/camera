@@ -217,6 +217,7 @@ class EmotionPredictor(VideoProcessorBase):
     #     return faces, image2
 
     def recv(self, frame: av.VideoFrame) -> av.VideoFrame:
+        print("Received frame", frame)
         # image = frame.to_ndarray(format="rgb24")
         # faces, annotated_image = self.find_faces(image)
         # return av.VideoFrame.from_ndarray(annotated_image, format="rgb24")
@@ -258,7 +259,7 @@ webrtc_ctx = webrtc_streamer(
     key="emotion-detection",
     mode=WebRtcMode.SENDRECV,
     rtc_configuration=RTC_CONFIGURATION,
-    # video_processor_factory=EmotionPredictor,
+    video_processor_factory=EmotionPredictor,
     video_frame_callback=video_frame_callback,
     media_stream_constraints={"video": True, "audio": False},
     async_processing=True,
