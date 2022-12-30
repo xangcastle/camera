@@ -108,10 +108,10 @@ if test_photo:
 class EmotionPredictor(VideoProcessorBase):
 
     def __init__(self) -> None:
-        # Sign detector
-        self.face_detector = FaceDetector()
-        self.model = retrieve_model()
-        self.queueprediction = []
+        pass
+        # self.face_detector = FaceDetector()
+        # self.model = retrieve_model()
+        # self.queueprediction = []
 
     def img_convert(self, image):
         print(image.shape)
@@ -144,7 +144,7 @@ class EmotionPredictor(VideoProcessorBase):
             start_point = (max(0, int(xmin - 0.3 * deltax)), max(0, int(ymin - 0.3 * deltay)))
 
             end_point = (
-            min(image2.shape[1], int(xmin + 1.3 * deltax)), min(image2.shape[0], int(ymin + 1.3 * deltay)))
+                min(image2.shape[1], int(xmin + 1.3 * deltax)), min(image2.shape[0], int(ymin + 1.3 * deltay)))
 
             im2crop = image2
             im2crop = im2crop[start_point[1]:end_point[1], start_point[0]:end_point[0]]
@@ -217,9 +217,10 @@ class EmotionPredictor(VideoProcessorBase):
         return faces, image2
 
     def recv(self, frame: av.VideoFrame) -> av.VideoFrame:
-        image = frame.to_ndarray(format="rgb24")
-        faces, annotated_image = self.find_faces(image)
-        return av.VideoFrame.from_ndarray(annotated_image, format="rgb24")
+        # image = frame.to_ndarray(format="rgb24")
+        # faces, annotated_image = self.find_faces(image)
+        # return av.VideoFrame.from_ndarray(annotated_image, format="rgb24")
+        return frame
 
 
 def video_frame_callback(frame):
