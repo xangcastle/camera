@@ -1,0 +1,4 @@
+wget
+rich
+deepface
+streamlit_webrtc
