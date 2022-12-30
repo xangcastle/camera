@@ -101,32 +101,30 @@ if test_photo:
 
 
 def video_frame_callback(frame):
-    frame = frame.to_ndarray(format="bgr24")
-    raw_img = frame.copy()
-    resolution = frame.shape
-    resolution_x = frame.shape[1]
-    resolution_y = frame.shape[0]
-    print(resolution_x, resolution_y)
-    # recognition = DeepFace.find(img,
-    #                             db_path=PHOTO_DIR,
-    #                             enforce_detection=False,
-    #                             distance_metric=metric,
-    #                             detector_backend=backend,
-    #                             model_name=model
-    #                             )
-    # record = recognition.head(1)
-    # record_dict = record.to_dict()
-    # if 0 in record_dict['identity']:
-    #     placeholder.image(record_dict['identity'][0], width=200)
-    return av.VideoFrame.from_ndarray(frame, format="bgr24")
+    if frame:
+        frame = frame.to_ndarray(format="bgr24")
+        raw_img = frame.copy()
+        resolution = frame.shape
+        resolution_x = frame.shape[1]
+        resolution_y = frame.shape[0]
+        print(resolution_x, resolution_y)
+        # recognition = DeepFace.find(img,
+        #                             db_path=PHOTO_DIR,
+        #                             enforce_detection=False,
+        #                             distance_metric=metric,
+        #                             detector_backend=backend,
+        #                             model_name=model
+        #                             )
+        # record = recognition.head(1)
+        # record_dict = record.to_dict()
+        # if 0 in record_dict['identity']:
+        #     placeholder.image(record_dict['identity'][0], width=200)
+        return av.VideoFrame.from_ndarray(frame, format="bgr24")
+    return frame
 
 
 webrtc_streamer(
     key="camera",
-    client_settings=ClientSettings(
-        media_stream_constraints={"video": True, "audio": False},
-    ),
     video_frame_callback=video_frame_callback,
-    rtc_configuration={
-        "iceServers": [{"urls": ["stun:stun.l.google.com:19302"]}]
-    })
+    rtc_configuration={"iceServers": [{"urls": ["stun:stun.l.google.com:19302"]}]},
+    media_stream_constraints={"video": True, "audio": True})
