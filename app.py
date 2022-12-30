@@ -2,8 +2,7 @@ import streamlit as st
 import os
 import tempfile
 from PIL import Image
-
-# from deepface import DeepFace
+from deepface import DeepFace
 
 APP_DIR = os.path.abspath(os.curdir)
 PHOTO_DIR = os.path.join(APP_DIR, "photos")
