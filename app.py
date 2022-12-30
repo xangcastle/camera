@@ -2,7 +2,10 @@ import streamlit as st
 import os
 import tempfile
 from PIL import Image
-from deepface import DeepFace
+# from deepface import DeepFace
+from deepface.detectors import OpenCvWrapper
+from streamlit_webrtc import webrtc_streamer, VideoTransformerBase, ClientSettings
+import av
 
 APP_DIR = os.path.abspath(os.curdir)
 PHOTO_DIR = os.path.join(APP_DIR, "photos")
@@ -84,14 +87,40 @@ if test_photo:
     temp_file = tempfile.NamedTemporaryFile(delete=False)
     temp_file.write(test_photo.read())
 
-    recognition = DeepFace.find(img_path=temp_file.name,
-                                db_path=PHOTO_DIR,
-                                enforce_detection=False,
-                                distance_metric=metric,
-                                detector_backend=backend,
-                                model_name=model
-                                )
-    record = recognition.head(1)
-    record_dict = record.to_dict()
-    if 0 in record_dict['identity']:
-        placeholder.image(record_dict['identity'][0], width=200)
+    # recognition = DeepFace.find(img_path=temp_file.name,
+    #                             db_path=PHOTO_DIR,
+    #                             enforce_detection=False,
+    #                             distance_metric=metric,
+    #                             detector_backend=backend,
+    #                             model_name=model
+    #                             )
+    # record = recognition.head(1)
+    # record_dict = record.to_dict()
+    # if 0 in record_dict['identity']:
+    #     placeholder.image(record_dict['identity'][0], width=200)
+
+
+def video_frame_callback(frame):
+    frame = frame.to_ndarray(format="bgr24")
+    raw_img = frame.copy()
+    resolution = frame.shape
+    resolution_x = frame.shape[1]
+    resolution_y = frame.shape[0]
+    print(resolution_x, resolution_y)
+    # recognition = DeepFace.find(img,
+    #                             db_path=PHOTO_DIR,
+    #                             enforce_detection=False,
+    #                             distance_metric=metric,
+    #                             detector_backend=backend,
+    #                             model_name=model
+    #                             )
+    # record = recognition.head(1)
+    # record_dict = record.to_dict()
+    # if 0 in record_dict['identity']:
+    #     placeholder.image(record_dict['identity'][0], width=200)
+    return av.VideoFrame.from_ndarray(frame, format="bgr24")
+
+
+webrtc_streamer(key="camera", client_settings=ClientSettings(
+    media_stream_constraints={"video": True, "audio": False},
+), video_frame_callback=video_frame_callback)
