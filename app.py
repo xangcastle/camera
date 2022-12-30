@@ -76,6 +76,7 @@ placeholder.title("Facial recognition")
 test_photo = st.file_uploader("Upload photo", type=[".jpg", ".png", ".jpeg"])
 
 if test_photo:
+    placeholder.empty()
     temp_file = tempfile.NamedTemporaryFile(delete=False)
     temp_file.write(test_photo.read())
 
