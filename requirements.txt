@@ -1,3 +1,4 @@
 wget
 rich
 deepface==0.0.75
+streamlit_webrtc
