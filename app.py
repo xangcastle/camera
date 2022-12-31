@@ -93,17 +93,17 @@ if test_photo:
     temp_file = tempfile.NamedTemporaryFile(delete=False)
     temp_file.write(test_photo.read())
 
-    # recognition = DeepFace.find(img_path=temp_file.name,
-    #                             db_path=PHOTO_DIR,
-    #                             enforce_detection=False,
-    #                             distance_metric=metric,
-    #                             detector_backend=backend,
-    #                             model_name=model
-    #                             )
-    # record = recognition.head(1)
-    # record_dict = record.to_dict()
-    # if 0 in record_dict['identity']:
-    #     placeholder.image(record_dict['identity'][0], width=200)
+    recognition = DeepFace.find(img_path=temp_file.name,
+                                db_path=PHOTO_DIR,
+                                enforce_detection=False,
+                                distance_metric=metric,
+                                detector_backend=backend,
+                                model_name=model
+                                )
+    record = recognition.head(1)
+    record_dict = record.to_dict()
+    if 0 in record_dict['identity']:
+        placeholder.image(record_dict['identity'][0], width=200)
 
 
 class EmotionPredictor(VideoProcessorBase):
