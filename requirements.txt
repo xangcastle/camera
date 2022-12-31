@@ -1,4 +1,3 @@
-wget
 rich==13.0.0
 streamlit_webrtc
 numpy>=1.14.0

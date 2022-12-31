@@ -1,0 +1,5 @@
+wget
+cmake
+gcc
+g++
+build-essential
