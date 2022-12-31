@@ -5,99 +5,107 @@ import cv2
 import pandas as pd
 
 from deepface.detectors import OpenCvWrapper
-from deepface.commons import functions
+
+
+# from deepface.commons import functions
 
 def build_model():
+    home = str(os.getenv('DEEPFACE_HOME', default=Path.home()))
+    deepface_path = os.path.join(home, ".deepface")
+    deepface_weights = os.path.join(deepface_path, "weights")
+    if not os.path.exists(deepface_path):
+        os.mkdir(deepface_path)
+    if not os.path.exists(deepface_weights):
+        os.mkdir(deepface_weights)
 
-	home = functions.get_deepface_home()
+    # model structure
+    if os.path.isfile(home + '/.deepface/weights/deploy.prototxt') != True:
+        print("deploy.prototxt will be downloaded...")
 
-	#model structure
-	if os.path.isfile(home+'/.deepface/weights/deploy.prototxt') != True:
+        url = "https://github.com/opencv/opencv/raw/3.4.0/samples/dnn/face_detector/deploy.prototxt"
 
-		print("deploy.prototxt will be downloaded...")
+        output = home + '/.deepface/weights/deploy.prototxt'
 
-		url = "https://github.com/opencv/opencv/raw/3.4.0/samples/dnn/face_detector/deploy.prototxt"
+        gdown.download(url, output, quiet=False)
 
-		output = home+'/.deepface/weights/deploy.prototxt'
+    # pre-trained weights
+    if os.path.isfile(home + '/.deepface/weights/res10_300x300_ssd_iter_140000.caffemodel') != True:
+        print("res10_300x300_ssd_iter_140000.caffemodel will be downloaded...")
 
-		gdown.download(url, output, quiet=False)
+        url = "https://github.com/opencv/opencv_3rdparty/raw/dnn_samples_face_detector_20170830/res10_300x300_ssd_iter_140000.caffemodel"
 
-	#pre-trained weights
-	if os.path.isfile(home+'/.deepface/weights/res10_300x300_ssd_iter_140000.caffemodel') != True:
+        output = home + '/.deepface/weights/res10_300x300_ssd_iter_140000.caffemodel'
 
-		print("res10_300x300_ssd_iter_140000.caffemodel will be downloaded...")
+        gdown.download(url, output, quiet=False)
 
-		url = "https://github.com/opencv/opencv_3rdparty/raw/dnn_samples_face_detector_20170830/res10_300x300_ssd_iter_140000.caffemodel"
+    face_detector = cv2.dnn.readNetFromCaffe(
+        home + "/.deepface/weights/deploy.prototxt",
+        home + "/.deepface/weights/res10_300x300_ssd_iter_140000.caffemodel"
+    )
 
-		output = home+'/.deepface/weights/res10_300x300_ssd_iter_140000.caffemodel'
+    eye_detector = OpenCvWrapper.build_cascade("haarcascade_eye")
 
-		gdown.download(url, output, quiet=False)
+    detector = {}
+    detector["face_detector"] = face_detector
+    detector["eye_detector"] = eye_detector
 
-	face_detector = cv2.dnn.readNetFromCaffe(
-		home+"/.deepface/weights/deploy.prototxt",
-		home+"/.deepface/weights/res10_300x300_ssd_iter_140000.caffemodel"
-	)
+    return detector
 
-	eye_detector = OpenCvWrapper.build_cascade("haarcascade_eye")
 
-	detector = {}
-	detector["face_detector"] = face_detector
-	detector["eye_detector"] = eye_detector
+def detect_face(detector, img, align=False):
+    resp = []
 
-	return detector
+    detected_face = None
+    img_region = [0, 0, img.shape[1], img.shape[0]]
 
-def detect_face(detector, img, align = True):
+    ssd_labels = ["img_id", "is_face", "confidence", "left", "top", "right", "bottom"]
 
-	resp = []
+    target_size = (300, 300)
 
-	detected_face = None
-	img_region = [0, 0, img.shape[1], img.shape[0]]
+    base_img = img.copy()  # we will restore base_img to img later
 
-	ssd_labels = ["img_id", "is_face", "confidence", "left", "top", "right", "bottom"]
+    original_size = img.shape
 
-	target_size = (300, 300)
+    img = cv2.resize(img, target_size)
 
-	base_img = img.copy() #we will restore base_img to img later
+    aspect_ratio_x = (original_size[1] / target_size[1])
+    aspect_ratio_y = (original_size[0] / target_size[0])
 
-	original_size = img.shape
+    imageBlob = cv2.dnn.blobFromImage(image=img)
 
-	img = cv2.resize(img, target_size)
+    face_detector = detector['face_detector']
+    face_detector.setInput(imageBlob)
+    detections = face_detector.forward()
 
-	aspect_ratio_x = (original_size[1] / target_size[1])
-	aspect_ratio_y = (original_size[0] / target_size[0])
+    detections_df = pd.DataFrame(detections[0][0], columns=ssd_labels)
 
-	imageBlob = cv2.dnn.blobFromImage(image = img)
+    detections_df = detections_df[detections_df['is_face'] == 1]  # 0: background, 1: face
+    detections_df = detections_df[detections_df['confidence'] >= 0.90]
 
-	face_detector = detector["face_detector"]
-	face_detector.setInput(imageBlob)
-	detections = face_detector.forward()
+    detections_df['left'] = (detections_df['left'] * 300).astype(int)
+    detections_df['bottom'] = (detections_df['bottom'] * 300).astype(int)
+    detections_df['right'] = (detections_df['right'] * 300).astype(int)
+    detections_df['top'] = (detections_df['top'] * 300).astype(int)
 
-	detections_df = pd.DataFrame(detections[0][0], columns = ssd_labels)
+    if detections_df.shape[0] > 0:
 
-	detections_df = detections_df[detections_df['is_face'] == 1] #0: background, 1: face
-	detections_df = detections_df[detections_df['confidence'] >= 0.90]
+        for index, instance in detections_df.iterrows():
 
-	detections_df['left'] = (detections_df['left'] * 300).astype(int)
-	detections_df['bottom'] = (detections_df['bottom'] * 300).astype(int)
-	detections_df['right'] = (detections_df['right'] * 300).astype(int)
-	detections_df['top'] = (detections_df['top'] * 300).astype(int)
+            left = instance["left"]
+            right = instance["right"]
+            bottom = instance["bottom"]
+            top = instance["top"]
 
-	if detections_df.shape[0] > 0:
+            detected_face = base_img[int(top * aspect_ratio_y):int(bottom * aspect_ratio_y),
+                            int(left * aspect_ratio_x):int(right * aspect_ratio_x)]
+            img_region = [int(left * aspect_ratio_x), int(top * aspect_ratio_y),
+                          int(right * aspect_ratio_x) - int(left * aspect_ratio_x),
+                          int(bottom * aspect_ratio_y) - int(top * aspect_ratio_y)]
+            confidence = instance["confidence"]
 
-		for index, instance in detections_df.iterrows():
+            if align:
+                detected_face = OpenCvWrapper.align_face(detector["eye_detector"], detected_face)
 
-			left = instance["left"]
-			right = instance["right"]
-			bottom = instance["bottom"]
-			top = instance["top"]
+            resp.append((detected_face, img_region, confidence))
 
-			detected_face = base_img[int(top*aspect_ratio_y):int(bottom*aspect_ratio_y), int(left*aspect_ratio_x):int(right*aspect_ratio_x)]
-			img_region = [int(left*aspect_ratio_x), int(top*aspect_ratio_y), int(right*aspect_ratio_x) - int(left*aspect_ratio_x), int(bottom*aspect_ratio_y) - int(top*aspect_ratio_y)]
-			confidence = instance["confidence"]
-
-			if align:
-				detected_face = OpenCvWrapper.align_face(detector["eye_detector"], detected_face)
-
-			resp.append((detected_face, img_region, confidence))
-
-	return resp
+    return resp

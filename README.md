@@ -5,7 +5,7 @@ colorFrom: indigo
 colorTo: indigo
 sdk: streamlit
 sdk_version: 1.15.2
-app_file: app.py
+app_file: ./src/app.py
 pinned: false
 license: apache-2.0
 ---
