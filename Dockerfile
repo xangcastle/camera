@@ -4,8 +4,9 @@ LABEL maintainer="Cesar Rammirez @xangcastle"
 EXPOSE 8501
 
 RUN apt-get update
-RUN apt-get install ffmpeg libsm6 libxext6 freeglut3-dev libgtk2.0-dev  -y
 RUN apt-get install wget cmake gcc g++ build-essential -y
+RUN apt-get install ffmpeg libsm6 libxext6 freeglut3-dev libgtk2.0-dev libgl1  -y
+RUN apt-get install python3-opencv  -y
 
 WORKDIR /app
 COPY requirements.txt .
