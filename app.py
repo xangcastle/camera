@@ -2,8 +2,9 @@ import streamlit as st
 import os
 import tempfile
 from PIL import Image
-# from deepface import DeepFace
-# from deepface.detectors import OpenCvWrapper
+import cv2
+import numpy as np
+from deepface import DeepFace
 from streamlit_webrtc import (
     RTCConfiguration,
     VideoProcessorBase,
@@ -113,10 +114,10 @@ class EmotionPredictor(VideoProcessorBase):
         # self.model = retrieve_model()
         # self.queueprediction = []
 
-    # def img_convert(self, image):
-    #     print(image.shape)
-    #     image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    #     return image
+    def img_convert(self, image):
+        image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        return image
+
     #
     # def predict(self, image, shape, reshape):
     #
@@ -217,11 +218,11 @@ class EmotionPredictor(VideoProcessorBase):
     #     return faces, image2
 
     def recv(self, frame: av.VideoFrame) -> av.VideoFrame:
-        print("Received frame", frame)
-        # image = frame.to_ndarray(format="rgb24")
+        image = frame.to_ndarray(format="rgb24")
+        cv2.rectangle(image, (40, 40), (40 + 100, 40 + 100), (67, 67, 67), 1)
+        cv2.putText(image, 'Nombre', (int(40), int(40)), cv2.FONT_HERSHEY_SIMPLEX, 4, (255, 255, 255), 2)
         # faces, annotated_image = self.find_faces(image)
-        # return av.VideoFrame.from_ndarray(annotated_image, format="rgb24")
-        return frame
+        return av.VideoFrame.from_ndarray(image, format="rgb24")
 
 
 def video_frame_callback(frame):
@@ -260,7 +261,6 @@ webrtc_ctx = webrtc_streamer(
     mode=WebRtcMode.SENDRECV,
     rtc_configuration=RTC_CONFIGURATION,
     video_processor_factory=EmotionPredictor,
-    video_frame_callback=video_frame_callback,
     media_stream_constraints={"video": True, "audio": False},
     async_processing=True,
 )
